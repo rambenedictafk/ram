@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ram's Quiz - Modern Edition</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .slide {
+      display: none;
+      min-height: 100vh;
+      padding: 40px 20px;
+      position: relative;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content {
+      text-align: center;
+      width: 100%;
+    }
+
+    .modern-title {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+
+    .ram-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+    }
+
+    .ram-img {
+      width: 300px;
+      height: 300px;
+      border-radius: 20px;
+      border: 3px solid #333;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      animation: subtleBounce 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+
+    .ram-img:hover {
+      border-color: #fff;
+      transform: scale(1.05);
+    }
+
+    @keyframes subtleBounce {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .modern-btn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 200px;
+    }
+
+    .modern-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+    }
+
+    .modern-btn:active {
+      transform: translateY(0);
+    }
+
+    .modern-input {
+      background: #111;
+      border: 2px solid #333;
+      padding: 16px 20px;
+      font-size: 1.1rem;
+      color: #fff;
+      border-radius: 12px;
+      margin: 20px 0;
+      width: min(500px, 100%);
+      transition: border-color 0.2s ease;
+    }
+
+    .modern-input:focus {
+      outline: none;
+      border-color: #fff;
+    }
+
+    .modern-input::placeholder {
+      color: #666;
+    }
+
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 3rem auto;
+    }
+
+    .option-card {
+      background: #111;
+      border: 2px solid #333;
+      border-radius: 16px;
+      padding: 2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    .option-card:hover {
+      border-color: #666;
+      background: #1a1a1a;
+    }
+
+    .option-card.selected {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .option-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .option-check {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #666;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .option-card.selected .option-check {
+      background: #000;
+      border-color: #000;
+    }
+
+    .option-card.selected .option-check::after {
+      content: '✓';
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .question-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin: 3rem 0;
+    }
+
+    .question-content {
+      flex: 1;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    .question-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+
+    .submit-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      justify-content: center;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+    }
+
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: #111;
+      z-index: 1000;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #fff;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .result-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
+      padding: 3rem;
+      border-radius: 20px;
+      border: 2px solid #333;
+      z-index: 1001;
+      display: none;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .result-popup h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .final-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .final-title {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+    }
+
+    .final-subtitle {
+      font-size: 1.5rem;
+      color: #999;
+      margin-bottom: 2rem;
+    }
+
+    .troll-img {
+      width: 150px;
+      height: 150px;
+      background: #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      animation: slowSpin 10s linear infinite;
+    }
+
+    @keyframes slowSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .correct-img {
+      width: 100px;
+      height: 100px;
+      background: #4CAF50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: white;
+      margin: 1rem auto;
+    }
+
+    @media (max-width: 768px) {
+      .ram-container {
+        flex-direction: column;
+        gap: 2rem;
+      }
+      
+      .question-section {
+        flex-direction: column;
+        gap: 2rem;
+      }
+      
+      .question-content {
+        text-align: center;
+      }
+      
+      .quiz-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <!-- Slide 1: Welcome -->
+  <div class="slide active" id="slide1">
+    <div class="container">
+      <div class="content">
+        <h1 class="modern-title">Ready for Ram's Quiz?</h1>
+        <div class="ram-container">
+          <div class="ram-img">
+            👤
+          </div>
+          <button class="modern-btn" onclick="nextSlide()">START QUIZ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Question 1 -->
+  <div class="slide" id="slide2">
+    <div class="container">
+      <div class="content">
+        <div class="question-section">
+          <div class="question-content">
+            <h2 class="question-title">Is Ram a funny man?</h2>
+            <input type="text" class="modern-input" placeholder="Your honest answer..." id="answer1">
+          </div>
+          <button class="modern-btn" onclick="submitAnswer(1)">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Question 2 -->
+  <div class="slide" id="slide3">
+    <div class="container">
+      <div class="content">
+        <div class="question-section">
+          <div class="question-content">
+            <h2 class="question-title">How much does Ram know about your life?</h2>
+            <input type="text" class="modern-input" placeholder="Scale of 1-10..." id="answer2">
+          </div>
+          <button class="modern-btn" onclick="submitAnswer(2)">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Question 3 -->
+  <div class="slide" id="slide4">
+    <div class="container">
+      <div class="content">
+        <div class="question-section">
+          <div class="question-content">
+            <h2 class="question-title">How much did Ram streak in school?</h2>
+            <input type="text" class="modern-input" placeholder="Your guess..." id="answer3">
+          </div>
+          <button class="modern-btn" onclick="submitAnswer(3)">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Multiple Choice 1 -->
+  <div class="slide" id="slide5">
+    <div class="container">
+      <div class="content">
+        <h2 class="modern-title" style="font-size: 2rem;">What did Ram do after losing $100 in Bedwars?</h2>
+        <div class="quiz-grid">
+          <div class="option-card" onclick="selectOption(this, 5, 'A')">
+            <div class="option-text">Ragequit and close computer</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 5, 'B')">
+            <div class="option-text">Ragequit and start shouting and banging desk</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 5, 'C')">
+            <div class="option-text">Ragequit and sleep</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 5, 'D')">
+            <div class="option-text">Ragequit and never come back</div>
+            <div class="option-check"></div>
+          </div>
+        </div>
+        <button class="modern-btn" onclick="submitMultiple(5)" id="submit5" style="display:none;">SUBMIT ANSWER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: Multiple Choice 2 -->
+  <div class="slide" id="slide6">
+    <div class="container">
+      <div class="content">
+        <h2 class="modern-title" style="font-size: 2rem;">What was Ram's score on his 3rd attempt?</h2>
+        <div class="quiz-grid">
+          <div class="option-card" onclick="selectOption(this, 6, 'A')">
+            <div class="option-text">90 points</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 6, 'B')">
+            <div class="option-text">81 points</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 6, 'C')">
+            <div class="option-text">75 points</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 6, 'D')">
+            <div class="option-text">88 points</div>
+            <div class="option-check"></div>
+          </div>
+        </div>
+        <button class="modern-btn" onclick="submitMultiple(6)" id="submit6" style="display:none;">SUBMIT ANSWER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Multiple Choice 3 -->
+  <div class="slide" id="slide7">
+    <div class="container">
+      <div class="content">
+        <h2 class="modern-title" style="font-size: 2rem;">What's Ram's main hobby?</h2>
+        <div class="quiz-grid">
+          <div class="option-card" onclick="selectOption(this, 7, 'A')">
+            <div class="option-text">Coding</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 7, 'B')">
+            <div class="option-text">Playing instruments</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 7, 'C')">
+            <div class="option-text">Self-reflection</div>
+            <div class="option-check"></div>
+          </div>
+          <div class="option-card" onclick="selectOption(this, 7, 'D')">
+            <div class="option-text">Watching TV</div>
+            <div class="option-check"></div>
+          </div>
+        </div>
+        <button class="modern-btn" onclick="submitMultiple(7)" id="submit7" style="display:none;">SUBMIT ANSWER</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Open Question -->
+  <div class="slide" id="slide8">
+    <div class="container">
+      <div class="content">
+        <div class="question-section">
+          <div class="question-content">
+            <h2 class="question-title">What kind of Ram do you want to be?</h2>
+            <input type="text" class="modern-input" placeholder="Describe your ideal Ram..." id="answer8">
+          </div>
+          <button class="modern-btn" onclick="submitAnswer(8)">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 9: Thinking -->
+  <div class="slide" id="slide9">
+    <div class="container">
+      <div class="content">
+        <div class="final-section">
+          <h1 class="final-title">Processing...</h1>
+          <div class="troll-img">🤔</div>
+          <p class="final-subtitle">Analyzing your responses...</p>
+          <button class="modern-btn" onclick="nextSlide()">CONTINUE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 10: Final Troll -->
+  <div class="slide" id="slide10">
+    <div class="container">
+      <div class="content">
+        <div class="final-section">
+          <h1 class="final-title">GOTCHA! 🎭</h1>
+          <div class="troll-img">😈</div>
+          <h2 class="final-subtitle">Thanks for wasting your time!</h2>
+          <p style="font-size: 1.2rem; color: #999; margin: 2rem 0;">
+            You can stalk my Facebook now... if you can find it! 👻
+          </p>
+          <p style="font-size: 1rem; color: #666;">
+            P.S. - All your answers have been recorded for "research" purposes 📝
+          </p>
+          <button class="modern-btn" onclick="restartQuiz()" style="margin-top: 2rem;">
+            RESTART & TROLL AGAIN
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-popup" id="resultPopup">
+    <div class="correct-img">✓</div>
+    <h2 id="resultText">Interesting...</h2>
+    <button class="modern-btn" onclick="closeResult()">CONTINUE</button>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+    let selectedOptions = {};
+    let answers = {};
+
+    function updateProgress() {
+      const progress = (currentSlide / totalSlides) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    function showSlide(slideNum) {
+      document.querySelectorAll('.slide').forEach(slide => {
+        slide.classList.remove('active');
+      });
+      document.getElementById(`slide${slideNum}`).classList.add('active');
+      updateProgress();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        showSlide(currentSlide);
+      }
+    }
+
+    function submitAnswer(questionNum) {
+      const answer = document.getElementById(`answer${questionNum}`).value;
+      if (!answer.trim()) {
+        alert('Please enter an answer!');
+        return;
+      }
+      answers[questionNum] = answer;
+      showFakeResult(questionNum, answer);
+    }
+
+    function selectOption(element, slideNum, option) {
+      element.parentNode.querySelectorAll('.option-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      element.classList.add('selected');
+      selectedOptions[slideNum] = option;
+      
+      document.getElementById(`submit${slideNum}`).style.display = 'block';
+    }
+
+    function submitMultiple(slideNum) {
+      const selected = selectedOptions[slideNum];
+      if (selected) {
+        showFakeResult(slideNum, selected);
+      }
+    }
+
+    function showFakeResult(questionNum, answer) {
+      const popup = document.getElementById('resultPopup');
+      const resultText = document.getElementById('resultText');
+      
+      const responses = [
+        "Noted for future reference...",
+        "That's... exactly what we expected",
+        "Interesting choice!",
+        "We're definitely not judging",
+        "That reveals so much about you",
+        "Perfect! Just what we needed"
+      ];
+      
+      resultText.textContent = responses[Math.floor(Math.random() * responses.length)];
+      popup.style.display = 'block';
+      
+      // Don't auto-advance - user must click continue
+    }
+
+    function closeResult() {
+      document.getElementById('resultPopup').style.display = 'none';
+      nextSlide();
+    }
+
+    function restartQuiz() {
+      currentSlide = 1;
+      selectedOptions = {};
+      answers = {};
+      showSlide(1);
+      
+      document.querySelectorAll('.modern-input').forEach(input => {
+        input.value = '';
+      });
+      
+      document.querySelectorAll('.option-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      document.querySelectorAll('[id^="submit"]').forEach(btn => {
+        btn.style.display = 'none';
+      });
+    }
+
+    updateProgress();
+  </script>
+</body>
+</html>
